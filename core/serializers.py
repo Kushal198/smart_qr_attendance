@@ -1,0 +1,84 @@
+import datetime
+from datetime import date
+import pyotp
+from django.http import Http404
+from rest_framework import serializers
+from .models import Attendance, Course, AttendanceClass
+from django.contrib.auth.models import User
+
+
+class ReadUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name', 'last_name')
+
+
+class ReadCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ('id', 'name', 'teacher', 'code', 'class_id')
+
+
+class WriteAttendanceSerializer(serializers.ModelSerializer):
+    student = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    date = serializers.HiddenField(default=datetime.date.today)
+
+    class Meta:
+        model = Attendance
+        fields = (
+            'status',
+            'date',
+            'student',
+        )
+
+    def get_serializer_context(self):
+        return self.context['request'].data
+
+    def get_default(self):
+        return self.context['request'].user
+
+    def create(self, validated_data):
+        request_data = dict(self.get_serializer_context())
+        user = self.get_default()
+        code = pyotp.parse_uri(request_data['otpauthurl'])
+        try:
+            attendance_class = AttendanceClass.objects.get(secret=code.secret)
+            course = attendance_class.course
+            instance = Attendance.objects.get(student=user, course=course, date=date.today())
+            instance.status = validated_data['status']
+            instance.save()
+            return instance
+        except AttendanceClass.DoesNotExist:
+            raise Http404
+
+
+class ReadAttendanceSerializer(serializers.ModelSerializer):
+    student = ReadUserSerializer()
+    course = ReadCourseSerializer()
+
+    class Meta:
+        model = Attendance
+        fields = (
+            'id',
+            'course',
+            'student',
+            'attendance_class',
+            'date',
+            'status',
+        )
+        read_only_fields = fields
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User,
+        fields = ('__all__')
+
+
+class CourseEnrollSerializer(serializers.ModelSerializer):
+    # student = StudentSerializer(many=True, read_only=True)
+    class Meta:
+        model = Course
+        fields = ('id', 'name', 'teacher','class_id', 'students',)
+        depth = 1
+

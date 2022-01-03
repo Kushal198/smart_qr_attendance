@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}
+Generate Qr
+{% endblock %}
+{%block content %}
+<div class="container shadow"
+       style="width: 800px; margin-top: 5em; padding: 2em">
+
+      <div class="input-group mb-3">
+        <div style="margin: auto">
+          {{ svg|safe }}
+        </div>
+      </div>
+  </div>
+{%endblock%}
