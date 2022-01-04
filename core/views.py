@@ -12,8 +12,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-
-from .models import Course, Attendance, AttendanceClass
+from .models import Course, Attendance, AttendanceClass, Teacher, Department
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 import qrcode
 import qrcode.image.svg
@@ -25,12 +24,14 @@ from .serializers import ReadAttendanceSerializer, WriteAttendanceSerializer, Co
 class OwnerMixin(object):
     def get_queryset(self):
         qs = super(OwnerMixin, self).get_queryset()
-        return qs.filter(teacher=self.request.user)
+        return qs.filter(teacher=self.request.user.teacher)
 
 
 class OwnerEditMixin(object):
     def form_valid(self, form):
-        form.instance.teacher = self.request.user
+        depart = Department.objects.get(teacher=self.request.user.teacher)
+        form.instance.department = depart
+        form.instance.teacher = self.request.user.teacher
         return super(OwnerEditMixin, self).form_valid(form)
 
 
@@ -41,7 +42,7 @@ class OwnerCourseMixin(OwnerMixin,LoginRequiredMixin):
 
 
 class OwnerCourseEditMixin(OwnerCourseMixin, OwnerEditMixin):
-    fields = ['department','class_id','name', 'code',]
+    fields = ['class_id','name', 'code',]
     success_url = reverse_lazy('manage_course_list')
     template_name = 'courses/manage/course/form.html'
 
@@ -80,7 +81,7 @@ def generateQRCode(request, pk):
         result = AttendanceClass.objects.filter(date=date.today(),course=course)
         if not result:
             instance = AttendanceClass.objects.create(class_id=course.class_id,
-                                                      teacher=request.user,
+                                                      teacher=request.user.teacher,
                                                       course=course,
                                                       date=date.today(),
                                                       status=True)
@@ -116,7 +117,7 @@ def generateQRCode(request, pk):
 
 class AttendanceModelViewSet(ModelViewSet):
     def get_queryset(self):
-        return Attendance.objects.select_related('student','course').filter(student=self.request.user)
+        return Attendance.objects.all()
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -141,7 +142,7 @@ class CourseEnrollViewSet(viewsets.ModelViewSet):
         data = request.data
         course = Course.objects.get(id=data['course'])
         if course:
-            course.students.add(self.request.user)
+            course.students.add(self.request.user.student)
         course.save()
         serializer = CourseEnrollSerializer(course)
         return Response(serializer.data)

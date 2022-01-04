@@ -8,6 +8,7 @@
       <table class="table table-bordered">
         <thead>
           <tr>
+              <th scope="col">Roll Number</th>
             <th scope="col">Student Name</th>
             <th scope="col">Status</th>
             <th scope="col">Date</th>
@@ -16,6 +17,9 @@
         <tbody>
           <tr>
             {% for stu in object_list %}
+              <td>
+                  {{stu.student.roll_number}}
+              </td>
                <td>
 <!--              <div class="custom-control custom-checkbox">-->
 <!--                  <input type="checkbox" class="custom-control-input" id="customCheck1" checked>-->

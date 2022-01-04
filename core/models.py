@@ -20,6 +20,11 @@ DAYS_OF_WEEK = (
     ('Friday', 'Friday'),
 )
 
+sex_choice = (
+    ('Male', 'Male'),
+    ('Female', 'Female')
+)
+
 
 class Department(models.Model):
     name = models.CharField(max_length=200)
@@ -42,12 +47,36 @@ class Class(models.Model):
         return '%s: %d %s' % (d.name, self.semester, self.section)
 
 
+class Student(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    class_id = models.ForeignKey(Class, on_delete=models.CASCADE, default=1)
+    roll_number = models.CharField(primary_key='True', max_length=100)
+    name = models.CharField(max_length=200)
+    sex = models.CharField(max_length=50, choices=sex_choice, default='Male')
+    DOB = models.DateField(default='1990-01-01')
+
+    def __str__(self):
+        return self.name
+
+
+class Teacher(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    id = models.CharField(primary_key=True, max_length=100)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, default=1)
+    name = models.CharField(max_length=100)
+    sex = models.CharField(max_length=50, choices=sex_choice, default='Male')
+    DOB = models.DateField(default='1980-01-01')
+
+    def __str__(self):
+        return self.name
+
+
 class Course(models.Model):
     department = models.ForeignKey(Department, related_name='courses', on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='courses')
-    students = models.ManyToManyField(User, related_name='courses_joined', blank=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='courses')
+    students = models.ManyToManyField(Student, related_name='courses_joined', blank=True)
     code = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
@@ -56,7 +85,7 @@ class Course(models.Model):
 
 class AssignTime(models.Model):
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     course = ChainedForeignKey(
         Course,
         chained_field='class_id',
@@ -73,7 +102,7 @@ class AssignTime(models.Model):
 
 class AttendanceClass(models.Model):
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     course = ChainedForeignKey(
         Course,
         chained_field='class_id',
@@ -94,19 +123,18 @@ class AttendanceClass(models.Model):
 
     def __str__(self):
         teacher_name = User.objects.get(id=self.teacher.id)
-        print(teacher_name)
         course_name = Course.objects.get(name=self.course)
         return '%s : %s' % (teacher_name, course_name.code)
 
 
 class Attendance(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='attendances')
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
     attendance_class = models.ForeignKey(AttendanceClass, on_delete=models.CASCADE, default=1)
     date = models.DateField(default='2021-12-30')
     status = models.BooleanField(default='True')
 
     def __str__(self):
-        student_name = User.objects.get(id=self.student.id)
+        student_name = Student.objects.get(name=self.student)
         course_name = Course.objects.get(name=self.course)
-        return '%s : %s' % (student_name.first_name, course_name.code)
+        return '%s : %s' % (student_name.name, course_name.code)

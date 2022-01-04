@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-a-v8$d_gr^ecrnz@cgr9l2f-i2b8icaalfoku#91a*r2f$2x$f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['smartqrattendanceapp.herokuapp.com']
+ALLOWED_HOSTS = ['localhost','smartqrattendanceapp.herokuapp.com']
 
 
 # Application definition
@@ -162,3 +162,4 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 100,
 }
+

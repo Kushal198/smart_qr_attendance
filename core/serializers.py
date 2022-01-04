@@ -2,6 +2,7 @@ import datetime
 from datetime import date
 import pyotp
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from .models import Attendance, Course, AttendanceClass
 from django.contrib.auth.models import User
@@ -35,7 +36,7 @@ class WriteAttendanceSerializer(serializers.ModelSerializer):
         return self.context['request'].data
 
     def get_default(self):
-        return self.context['request'].user
+        return self.context['request'].user.student
 
     def create(self, validated_data):
         request_data = dict(self.get_serializer_context())
@@ -44,7 +45,7 @@ class WriteAttendanceSerializer(serializers.ModelSerializer):
         try:
             attendance_class = AttendanceClass.objects.get(secret=code.secret)
             course = attendance_class.course
-            instance = Attendance.objects.get(student=user, course=course, date=date.today())
+            instance = get_object_or_404(Attendance,student=user, course=course, date=date.today())
             instance.status = validated_data['status']
             instance.save()
             return instance

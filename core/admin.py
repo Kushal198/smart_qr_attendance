@@ -1,7 +1,16 @@
 from django.contrib import admin
-from .models import Department,Class,Course,AssignTime,AttendanceClass,Attendance
+from .models import Department,Class,Course,AssignTime,AttendanceClass,Attendance,Student,Teacher
 
 # Register your models here.
+
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display=['name']
+
+@admin.register(Teacher)
+class TeacherAdmin(admin.ModelAdmin):
+    list_display = ['name']
+
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
     list_display = ['name']
