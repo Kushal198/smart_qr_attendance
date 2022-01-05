@@ -10,16 +10,18 @@
           <a href='{% url "course_edit" course.id %}'>Edit</a>
           <a href='{% url "course_delete" course.id %}'>Delete</a>
         </p>
-        <p> <a href='{% url "manage_attendance_list" course.id%}' class="button">See Attendance</a>
-         <a href='{% url "create_qr_code" course.id%}' class="btn btn-primary">Generate QR Code</a>
+        <p> <a href='{% url "manage_attendance_list" course.id%}' class="btn btn-secondary btn-sm">See Attendance</a>
+         <a href='{% url "create_qr_code" course.id%}' class="btn btn-primary btn-sm">Generate QR Code</a>
+
         </p>
+
 
       </div>
     {% empty %}
 <p>You haven't created any courses yet.</p>
     {% endfor %}
     <p>
-      <a href='{% url "course_create" %}' class="button">Create new course</a>
-
-</p> </div>
+      <a href='{% url "course_create" %}' class="btn btn-success btn-sm">Create new course</a>
+</p>
+  </div>
 {% endblock %}

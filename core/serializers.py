@@ -4,7 +4,7 @@ import pyotp
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from .models import Attendance, Course, AttendanceClass
+from .models import Attendance, Course, AttendanceClass,Student,Teacher,Class
 from django.contrib.auth.models import User
 
 
@@ -14,7 +14,22 @@ class ReadUserSerializer(serializers.ModelSerializer):
         fields = ('id', 'email', 'username', 'first_name', 'last_name')
 
 
+class ClassIdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Class
+        fields = ('department', 'semester')
+
+
+class TeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = ('id', 'name', 'department',)
+
+
 class ReadCourseSerializer(serializers.ModelSerializer):
+    teacher = TeacherSerializer()
+    class_id = ClassIdSerializer()
+
     class Meta:
         model = Course
         fields = ('id', 'name', 'teacher', 'code', 'class_id')
@@ -53,8 +68,14 @@ class WriteAttendanceSerializer(serializers.ModelSerializer):
             raise Http404
 
 
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ('roll_number', 'name',)
+
+
 class ReadAttendanceSerializer(serializers.ModelSerializer):
-    student = ReadUserSerializer()
+    student = StudentSerializer()
     course = ReadCourseSerializer()
 
     class Meta:
@@ -68,12 +89,6 @@ class ReadAttendanceSerializer(serializers.ModelSerializer):
             'status',
         )
         read_only_fields = fields
-
-
-class StudentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User,
-        fields = ('__all__')
 
 
 class CourseEnrollSerializer(serializers.ModelSerializer):

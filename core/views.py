@@ -3,21 +3,24 @@ import pyotp
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, permission_required
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView,DeleteView
 from rest_framework import viewsets, status
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from .models import Course, Attendance, AttendanceClass, Teacher, Department
+from .models import Course, Attendance, AttendanceClass, Teacher, Department, Student
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 import qrcode
 import qrcode.image.svg
 from io import BytesIO
-
+from rest_framework.authtoken.models import Token
 from .serializers import ReadAttendanceSerializer, WriteAttendanceSerializer, CourseEnrollSerializer
 
 
@@ -146,3 +149,76 @@ class CourseEnrollViewSet(viewsets.ModelViewSet):
         course.save()
         serializer = CourseEnrollSerializer(course)
         return Response(serializer.data)
+
+
+class ObtainAuthTokenEdit(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                       context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'name': user.student.name,
+            'email': user.email
+        })
+
+    
+def filterDateApi(request,pk):
+    context = {}
+    # cursor = connection.cursor()
+
+    date__gte = request.GET.get('date__gte')
+    date__lt = request.GET.get('date__lt')
+
+    queryset = Student.objects.raw('''SELECT roll_number,date,name,status FROM core_student A LEFT JOIN (SELECT * FROM core_attendance WHERE date=CURRENT_DATE)as B ON A.roll_number=B.student_id ''')
+
+    print(queryset)
+    # if date__lt is None or date__gte is None:
+    #     queryset = Attendance.objects.filter(course=pk)
+    # else:
+    #     queryset = Attendance.objects.filter(
+    #         date__gte=date__gte,
+    #         date__lte=date__lt,
+    #         course=pk)
+
+    context['object_list'] = queryset
+    return render(request, 'courses/manage/attendance/list.html', context=context)
+
+
+# class AddStudents(CreateView):
+#     template_name = 'courses/manage/student/add.html'
+#     form_class = StudentCreateForm
+#
+#     # def form_valid(self, form):
+#     #     self.object = form.save(commit=False)
+#     #     self.object.user = self.request.user
+#     #     self.object.save()
+#     #     return HttpResponseRedirect(self.get_success_url())
+#
+#     def get_initial(self, *args, **kwargs):
+#         initial = super(AddStudents, self).get_initial(**kwargs)
+#         initial['title'] = 'My Title'
+#         return initial
+#
+#     # def get_form_kwargs(self, *args, **kwargs):
+#     #     kwargs = super(AddStudents, self).get_form_kwargs(*args, **kwargs)
+#     #     kwargs['user'] = self.request.user
+#     #     return kwargs
+
+def get_student_detail(request, pk):
+    context = {}
+    date__gte = request.GET.get('date__gte')
+    date__lt = request.GET.get('date__lt')
+    if date__lt is None or date__gte is None:
+        queryset = Attendance.objects.filter(student_id=pk,course=pk)
+    else:
+        queryset = Attendance.objects.filter(
+            date__gte=date__gte,
+            date__lte=date__lt,
+            course=pk,
+        student_id=pk)
+    context['object_list'] = queryset
+    return render(request, 'courses/manage/attendance/student_attendance.html', context=context)

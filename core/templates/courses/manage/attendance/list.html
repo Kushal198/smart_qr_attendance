@@ -1,32 +1,28 @@
 {% extends "base.html" %}
+{% load filters %}
 {% block title %}My courses{% endblock %}
 {% block content %}
 <h1>Attendance List</h1>
 <div class="container mt-4">
   <div class="row">
-    <div class="col-md-10">
+    <div class="col-md-12">
       <table class="table table-bordered">
         <thead>
           <tr>
               <th scope="col">Roll Number</th>
             <th scope="col">Student Name</th>
             <th scope="col">Status</th>
-            <th scope="col">Date</th>
+<!--            <th scope="col">Date</th>-->
           </tr>
         </thead>
         <tbody>
           <tr>
             {% for stu in object_list %}
               <td>
-                  {{stu.student.roll_number}}
+                  {{stu.roll_number}}
               </td>
                <td>
-<!--              <div class="custom-control custom-checkbox">-->
-<!--                  <input type="checkbox" class="custom-control-input" id="customCheck1" checked>-->
-<!--                  <label class="custom-control-label" for="customCheck1">1</label>-->
-<!--              </div>-->
-
-             {{stu}}
+             <a href="{% url 'get_student_detail' stu.roll_number %}">{{stu.name}}</a>
             </td>
               <td>
                 <div class="custom-control custom-checkbox">
@@ -42,8 +38,7 @@
 
               </div>
             </td>
-            <td>{{stu.date}}</td>
-
+<!--            <td>{{stu.date}}</td>-->
 
 
           </tr>
@@ -53,37 +48,37 @@
         </tbody>
       </table>
     </div>
-      <div class="col-md-2">
-<!--        <div class="border-bottom pb-2 ml-2">-->
-<!--        <h4 id="burgundy">Filters</h4>-->
+<!--      <div class="col-md-2">-->
+
+<!--          <div class="border-bottom ">-->
+<!--              <h4 class="border-bottom">Filters</h4>-->
+<!--          <h5>Date</h5>-->
+<!--          </div>-->
+<!--        <ul class="list-group mt-2">-->
+
+<!--    <li class="selected list-group-item">-->
+<!--    <a href="?" title="Any date">Any date</a></li>-->
+
+<!--    <li class="list-group-item">-->
+<!--        {% now "Y-m-d" as todays_date %}-->
+<!--        {% yesterday as yesterdays_date %}-->
+<!--        {%past7 as past7_date %}-->
+<!--        {%month as month_date %}-->
+
+<!--    <a href="?date__gte={{todays_date}}&amp;date__lt={{yesterdays_date|date:'Y-m-d'}}" title="Today">Today</a></li>-->
+
+<!--    <li class="list-group-item">-->
+
+<!--    <a href="?date__gte={{past7_date|date:'Y-m-d'}}&amp;date__lt={{yesterdays_date|date:'Y-m-d'}}" title="Past 7 days">Past 7 days</a></li>-->
+
+<!--    <li class="list-group-item">-->
+<!--    <a href="?date__gte={{month_date|date:'Y-m-d'}}&amp;date__lt={{todays_date}}" title="This month">This month</a></li>-->
+
+<!--    <li class="list-group-item">-->
+<!--    <a href="?date__gte=2021-01-01&amp;date__lt=2022-01-01" title="This year">This year</a></li>-->
+
+<!--</ul>-->
 <!--    </div>-->
-
-
-          <div class="border-bottom ">
-<!--        <h4 id="burgundy">Filters</h4>-->
-<!--    </div>-->
-              <h4 class="border-bottom">Filters</h4>
-          <h5>Date</h5>
-          </div>
-        <ul class="list-group mt-2">
-
-    <li class="selected list-group-item">
-    <a href="?" title="Any date">Any date</a></li>
-
-    <li class="list-group-item">
-    <a href="?date__gte=2021-12-31&amp;date__lt=2022-01-01" title="Today">Today</a></li>
-
-    <li class="list-group-item">
-    <a href="?date__gte=2021-12-24&amp;date__lt=2022-01-01" title="Past 7 days">Past 7 days</a></li>
-
-    <li class="list-group-item">
-    <a href="?date__gte=2021-12-01&amp;date__lt=2022-01-01" title="This month">This month</a></li>
-
-    <li class="list-group-item">
-    <a href="?date__gte=2021-01-01&amp;date__lt=2022-01-01" title="This year">This year</a></li>
-
-</ul>
-    </div>
   </div>
 </div>
 
