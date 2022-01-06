@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from smart_selects.db_fields import ChainedForeignKey
+import datetime
 # Create your models here.
 
 time_slots = (
@@ -115,6 +116,7 @@ class AttendanceClass(models.Model):
     )
     date = models.DateField()
     secret = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=False)
 
     class Meta:

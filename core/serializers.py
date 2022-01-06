@@ -1,6 +1,7 @@
 import datetime
 from datetime import date
 import pyotp
+from django.core.exceptions import BadRequest
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -59,6 +60,12 @@ class WriteAttendanceSerializer(serializers.ModelSerializer):
         code = pyotp.parse_uri(request_data['otpauthurl'])
         try:
             attendance_class = AttendanceClass.objects.get(secret=code.secret)
+            time1 = attendance_class.created_at.replace(tzinfo=None)
+            time2 = datetime.datetime.now()
+            print(time1, '', time2)
+            diff = time2 - time1
+            if(diff.total_seconds()/60 > 60):
+                raise Http404
             course = attendance_class.course
             instance = get_object_or_404(Attendance,student=user, course=course, date=date.today())
             instance.status = validated_data['status']

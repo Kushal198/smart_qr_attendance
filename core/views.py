@@ -77,6 +77,7 @@ def listStudentAttendance(request, pk):
     return render(request, 'courses/manage/attendance/list.html', context=context)
 
 
+@login_required
 def generateQRCode(request, pk):
     context = {}
     if request.method == "GET":
@@ -100,6 +101,7 @@ def generateQRCode(request, pk):
             token = pyotp.TOTP(s=temp_secret, digits=6, interval=60).provisioning_uri(name='mallu_uncut@google.com', issuer_name='Secure App')
         else:
             for r in result:
+                r.save()
                 course = r.course
                 students = course.students.all()
                 for s in students:
@@ -118,9 +120,9 @@ def generateQRCode(request, pk):
     return render(request, "courses/manage/attendance/qr.html", context=context)
 
 
-class AttendanceModelViewSet(ModelViewSet):
+class AttendanceModelViewSet(ModelViewSet, LoginRequiredMixin):
     def get_queryset(self):
-        return Attendance.objects.all()
+        return Attendance.objects.filter(student=self.request.user.student)
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -134,7 +136,7 @@ def logout_view(request):
     return redirect('%s?next=%s' % (settings.LOGIN_URL, 'accounts/login/'))
 
 
-class CourseEnrollViewSet(viewsets.ModelViewSet):
+class CourseEnrollViewSet(viewsets.ModelViewSet,LoginRequiredMixin):
     serializer_class = CourseEnrollSerializer
 
     def get_queryset(self):
@@ -165,28 +167,14 @@ class ObtainAuthTokenEdit(ObtainAuthToken):
             'email': user.email
         })
 
-    
+@login_required
 def filterDateApi(request,pk):
     context = {}
-    # cursor = connection.cursor()
-
-    date__gte = request.GET.get('date__gte')
-    date__lt = request.GET.get('date__lt')
-
-    queryset = Student.objects.raw('''SELECT roll_number,date,name,status 
+    queryset = Student.objects.raw('''SELECT roll_number,date,name,status,course_id 
     FROM core_student A 
     LEFT JOIN (SELECT * FROM core_attendance WHERE date=CURRENT_DATE AND course_id=%s)as B 
     ON A.roll_number=B.student_id'''%pk)
-
-    # print(queryset)
-    # if date__lt is None or date__gte is None:
-    #     queryset = Attendance.objects.filter(course=pk)
-    # else:
-    #     queryset = Attendance.objects.filter(
-    #         date__gte=date__gte,
-    #         date__lte=date__lt,
-    #         course=pk)
-
+    print(queryset)
     context['object_list'] = queryset
     return render(request, 'courses/manage/attendance/list.html', context=context)
 
@@ -211,17 +199,17 @@ def filterDateApi(request,pk):
 #     #     kwargs['user'] = self.request.user
 #     #     return kwargs
 
-def get_student_detail(request, pk):
+def get_student_detail(request, pk,course_id):
     context = {}
     date__gte = request.GET.get('date__gte')
     date__lt = request.GET.get('date__lt')
     if date__lt is None or date__gte is None:
-        queryset = Attendance.objects.filter(student_id=pk,course=pk)
+        queryset = Attendance.objects.filter(student_id=pk,course=course_id)
     else:
         queryset = Attendance.objects.filter(
             date__gte=date__gte,
             date__lte=date__lt,
-            course=pk,
-        student_id=pk)
+            course=course_id,
+            student_id=pk)
     context['object_list'] = queryset
     return render(request, 'courses/manage/attendance/student_attendance.html', context=context)
