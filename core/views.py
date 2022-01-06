@@ -173,9 +173,12 @@ def filterDateApi(request,pk):
     date__gte = request.GET.get('date__gte')
     date__lt = request.GET.get('date__lt')
 
-    queryset = Student.objects.raw('''SELECT roll_number,date,name,status FROM core_student A LEFT JOIN (SELECT * FROM core_attendance WHERE date=CURRENT_DATE)as B ON A.roll_number=B.student_id ''')
+    queryset = Student.objects.raw('''SELECT roll_number,date,name,status 
+    FROM core_student A 
+    LEFT JOIN (SELECT * FROM core_attendance WHERE date=CURRENT_DATE AND course_id=%s)as B 
+    ON A.roll_number=B.student_id'''%pk)
 
-    print(queryset)
+    # print(queryset)
     # if date__lt is None or date__gte is None:
     #     queryset = Attendance.objects.filter(course=pk)
     # else:
