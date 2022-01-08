@@ -9,9 +9,10 @@ from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView,DeleteView
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -21,7 +22,8 @@ import qrcode
 import qrcode.image.svg
 from io import BytesIO
 from rest_framework.authtoken.models import Token
-from .serializers import ReadAttendanceSerializer, WriteAttendanceSerializer, CourseEnrollSerializer
+from .serializers import ReadAttendanceSerializer, WriteAttendanceSerializer, CourseEnrollSerializer, \
+    AttendanceCourseSerializer
 
 
 class OwnerMixin(object):
@@ -136,11 +138,11 @@ def logout_view(request):
     return redirect('%s?next=%s' % (settings.LOGIN_URL, 'accounts/login/'))
 
 
-class CourseEnrollViewSet(viewsets.ModelViewSet,LoginRequiredMixin):
+class CourseEnrollViewSet(viewsets.ModelViewSet, LoginRequiredMixin):
     serializer_class = CourseEnrollSerializer
 
     def get_queryset(self):
-        course = Course.objects.all()
+        course = Course.objects.filter(students__roll_number=self.request.user.student.roll_number)
         return course
 
     def create(self, request, *args, **kwargs):
@@ -213,3 +215,17 @@ def get_student_detail(request, pk,course_id):
             student_id=pk)
     context['object_list'] = queryset
     return render(request, 'courses/manage/attendance/student_attendance.html', context=context)
+
+class DetailStudentCourseAttendance(
+    mixins.RetrieveModelMixin,
+    GenericAPIView
+):
+
+    serializer_class = AttendanceCourseSerializer
+    queryset = Course.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+

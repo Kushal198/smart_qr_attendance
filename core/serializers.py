@@ -80,6 +80,11 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ('roll_number', 'name',)
 
+class AttendanceCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ('name','attendances')
+        depth = 1
 
 class ReadAttendanceSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
@@ -102,6 +107,6 @@ class CourseEnrollSerializer(serializers.ModelSerializer):
     # student = StudentSerializer(many=True, read_only=True)
     class Meta:
         model = Course
-        fields = ('id', 'name', 'teacher','class_id', 'students',)
+        fields = ('id', 'name', 'class_id', 'department')
         depth = 1
 

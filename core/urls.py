@@ -23,5 +23,6 @@ urlpatterns = [
     path('<pk>/delete/', views.CourseDeleteView.as_view(), name='course_delete'),
     path('<pk>/course-attendance/', views.filterDateApi, name='manage_attendance_list'),
     path('<pk>/generate-qr/', views.generateQRCode, name='create_qr_code'),
-    path('<pk>/<course_id>/student-detail/', views.get_student_detail, name='get_student_detail')
+    path('<pk>/<course_id>/student-detail/', views.get_student_detail, name='get_student_detail'),
+    path('<pk>/course-view-attendance/', views.DetailStudentCourseAttendance.as_view(), name='course_attendance')
 ] + router.urls
