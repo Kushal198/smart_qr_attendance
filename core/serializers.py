@@ -107,6 +107,6 @@ class CourseEnrollSerializer(serializers.ModelSerializer):
     # student = StudentSerializer(many=True, read_only=True)
     class Meta:
         model = Course
-        fields = ('id', 'name', 'class_id', 'department')
+        fields = ('id', 'name', 'code', 'class_id', 'department')
         depth = 1
 
