@@ -216,16 +216,39 @@ def get_student_detail(request, pk,course_id):
     context['object_list'] = queryset
     return render(request, 'courses/manage/attendance/student_attendance.html', context=context)
 
+
 class DetailStudentCourseAttendance(
     mixins.RetrieveModelMixin,
-    GenericAPIView
+    GenericAPIView,
 ):
 
     serializer_class = AttendanceCourseSerializer
-    queryset = Course.objects.all()
+
+    # queryset = Course.objects.all()
+
+
+    # def lookup_filed(self):
+    #     print(self)
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     queryset = Course.objects.get(id=kwargs['pk'],students__roll_number=self.request.user.student.roll_number)
+    #     print(queryset)
+    #     # queryset2 = queryset.attendances.filter(student=self.request.user.student)
+    #     # print(queryset.attendances.filter(student=self.request.user.student))
+    #     # print(queryset2)
+    #     return queryset
+
 
     def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        queryset = Course.objects.get(id=kwargs['pk'], students__roll_number=self.request.user.student.roll_number)
+        # print(queryset)
+        queryset2 = queryset.attendances.filter(student=self.request.user.student)
+        print(queryset)
+        # for i in queryset2:
+        #     print(i.date)
+        serializer = AttendanceCourseSerializer(queryset2, many=True)
+        print(serializer.data)
+        return Response(serializer.data)
 
 
 

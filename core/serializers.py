@@ -82,9 +82,9 @@ class StudentSerializer(serializers.ModelSerializer):
 
 class AttendanceCourseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Course
-        fields = ('name','attendances')
-        depth = 1
+        model = Attendance
+        fields = ('id','date','status','course','student','attendance_class')
+
 
 class ReadAttendanceSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
