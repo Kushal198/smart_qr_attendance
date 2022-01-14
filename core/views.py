@@ -1,4 +1,7 @@
-from datetime import date
+import calendar
+from datetime import datetime
+from collections import OrderedDict
+from datetime import date, timedelta
 import pyotp
 from django.conf import settings
 from django.contrib.auth import logout
@@ -172,12 +175,12 @@ class ObtainAuthTokenEdit(ObtainAuthToken):
 @login_required
 def filterDateApi(request,pk):
     context = {}
-    queryset = Student.objects.raw('''SELECT roll_number,date,name,status,course_id 
+    queryset = Student.objects.raw('''SELECT A.roll_number,B.date,A.name,B.status,B.course_id 
     FROM core_student A 
     LEFT JOIN (SELECT * FROM core_attendance WHERE date=CURRENT_DATE AND course_id=%s)as B 
-    ON A.roll_number=B.student_id'''%pk)
-    print(queryset)
+    ON A.roll_number=B.student_id group by A.roll_number'''%pk)
     context['object_list'] = queryset
+    context['course_id'] = pk
     return render(request, 'courses/manage/attendance/list.html', context=context)
 
 
@@ -202,11 +205,40 @@ def filterDateApi(request,pk):
 #     #     return kwargs
 
 def get_student_detail(request, pk,course_id):
+    # print(pk,course_id)
+    student_info = Student.objects.get(roll_number=pk)
+    course_info = Course.objects.get(id=course_id)
     context = {}
     date__gte = request.GET.get('date__gte')
     date__lt = request.GET.get('date__lt')
     if date__lt is None or date__gte is None:
-        queryset = Attendance.objects.filter(student_id=pk,course=course_id)
+        months_in_year = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+                          'October', 'November', 'December']
+        dumy = list(AttendanceClass.objects.filter(course=course_id).values_list('date',flat=True))
+        years_list = []
+        for d in dumy:
+            year_month = str(d.year)+'-'+str(d.month)
+            if(year_month not in years_list):
+                years_list.append(year_month)
+        new_list = []
+        for y in years_list:
+            split_it = y.split('-')
+            mon = months_in_year[int(split_it[1])-1]
+            new_list.append(mon+' '+ split_it[0])
+        days = []
+        class_days = []
+        for i in range(1,32):
+            custDate = date.today().replace(day=i)
+            if(custDate in dumy):
+                class_days.append(custDate.day)
+            days.append(i)
+        context['days'] = days
+        context['months'] = new_list
+        context['class_days'] = class_days
+        test = list(Attendance.objects.filter(student_id=pk,course=course_id).values_list('date','status'))
+        queryset = []
+        for q in test:
+            queryset.append({'day':q[0].day,'status':q[1] })
     else:
         queryset = Attendance.objects.filter(
             date__gte=date__gte,
@@ -214,6 +246,8 @@ def get_student_detail(request, pk,course_id):
             course=course_id,
             student_id=pk)
     context['object_list'] = queryset
+    context['student'] = student_info
+    context['course'] = course_info
     return render(request, 'courses/manage/attendance/student_attendance.html', context=context)
 
 
@@ -244,8 +278,6 @@ class DetailStudentCourseAttendance(
         # print(queryset)
         queryset2 = queryset.attendances.filter(student=self.request.user.student)
         print(queryset)
-        # for i in queryset2:
-        #     print(i.date)
         serializer = AttendanceCourseSerializer(queryset2, many=True)
         print(serializer.data)
         return Response(serializer.data)

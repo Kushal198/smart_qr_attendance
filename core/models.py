@@ -124,7 +124,7 @@ class AttendanceClass(models.Model):
         verbose_name_plural = 'Start Attendance'
 
     def __str__(self):
-        teacher_name = User.objects.get(id=self.teacher.id)
+        teacher_name = Teacher.objects.get(id=self.teacher.id)
         course_name = Course.objects.get(name=self.course)
         return '%s : %s' % (teacher_name, course_name.code)
 

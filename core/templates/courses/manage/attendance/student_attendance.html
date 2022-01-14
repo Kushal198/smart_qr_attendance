@@ -3,79 +3,108 @@
 {% block title %}My courses{% endblock %}
 {% block content %}
 <h1>Attendance List</h1>
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-10">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th scope="col">Student Name</th>
-            <th scope="col">Status</th>
-            <th scope="col">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            {% for stu in object_list %}
-               <td>
-                {{stu}}
-            </td>
-              <td>
-                <div class="custom-control custom-checkbox">
-                  {% if stu.status == True %}
-                  <input type="checkbox" class="custom-control-input" onclick="return false;" id="customCheck1"
-                         checked >
-                  <label class="custom-control-label" for="customCheck1">Present</label>
-                  {% else %}
-                  <input type="checkbox" class="custom-control-input" onclick="return false;" id="customCheck">
-                  <label class="custom-control-label" for="customCheck1">Absent</label>
-                  {% endif %}
-
+<div class="container-fluid mt-3">
+    <div class="row">
+         <div class="col">
+              <div class="pb-2">
+                  <div class="student-name"><span class="font-weight-bold">Name :</span> <span class="ms-2">{{student.name}}</span></div>
+                  <div class="student-class"><span class="font-weight-bold">Class :</span> <span class="ms-2">{{student.class_id}}</span></div>
+                  <div class="student-course"><span class="font-weight-bold">Course :</span> <span class="ms-2">{{course.name}}</span></div>
+                  <div class="teacher-name"><span class="font-weight-bold">Teacher :</span> <span class="ms-2">{{course.teacher}}</span></div>
+<!--                  <div class="student-attendence-ratio"><span class="fw-bold">Attendence Ratio :</span> <span class="ms-2">Stylis Star</span></div>-->
 
               </div>
-            </td>
-            <td>{{stu.date}}</td>
 
-
-          </tr>
-         {% endfor %}
-
-
+        <div class="table-responsive">
+      <table class="table table-bordered my-4">
+       <thead class="table-header">
+                     <tr>
+                    <th scope="col">Month/Day</th>
+                    {% for day in days%}<th scope="col">{{day}}</th>
+                    {%endfor%}
+                    </tr>
+                    </thead>
+            <tbody class="table-body">
+           {% for m in months %}
+                      <tr>
+                       <th scope="row">{{m}}</th>
+                          {% for day in days %}
+                             <td>
+                            {% checkAttendance day object_list class_days %}
+                            </td>
+                          {%endfor%}
+                      </tr>
+           {%endfor%}
         </tbody>
       </table>
+            <div class="symbol-info text-center border-bottom">
+          <span class="fw-bold">* P </span><span>= Present , </span> <span class="fw-bold"> A </span><span>= Absent</span>
+      </div>
+        </div>
     </div>
-      <div class="col-md-2">
+<!--      <div class="col-md-2">-->
 
-          <div class="border-bottom ">
-              <h4 class="border-bottom">Filters</h4>
-          <h5>Date</h5>
-          </div>
-        <ul class="list-group mt-2">
+<!--          <div class="border-bottom ">-->
+<!--              <h4 class="border-bottom">Filters</h4>-->
+<!--          <h5>Date</h5>-->
+<!--          </div>-->
+<!--        <ul class="list-group mt-2">-->
 
-    <li class="selected list-group-item">
-    <a href="?" title="Any date">Any date</a></li>
+<!--    <li class="selected list-group-item">-->
+<!--    <a href="?" title="Any date">Any date</a></li>-->
 
-    <li class="list-group-item">
-        {% now "Y-m-d" as todays_date %}
-        {% yesterday as yesterdays_date %}
-        {%past7 as past7_date %}
-        {%month as month_date %}
+<!--    <li class="list-group-item">-->
+<!--        {% now "Y-m-d" as todays_date %}-->
+<!--        {% yesterday as yesterdays_date %}-->
+<!--        {%past7 as past7_date %}-->
+<!--        {%month as month_date %}-->
 
-    <a href="?date__gte={{todays_date}}&amp;date__lt={{yesterdays_date|date:'Y-m-d'}}" title="Today">Today</a></li>
+<!--    <a href="?date__gte={{todays_date}}&amp;date__lt={{yesterdays_date|date:'Y-m-d'}}" title="Today">Today</a></li>-->
 
-    <li class="list-group-item">
+<!--    <li class="list-group-item">-->
 
-    <a href="?date__gte={{past7_date|date:'Y-m-d'}}&amp;date__lt={{yesterdays_date|date:'Y-m-d'}}" title="Past 7 days">Past 7 days</a></li>
+<!--    <a href="?date__gte={{past7_date|date:'Y-m-d'}}&amp;date__lt={{yesterdays_date|date:'Y-m-d'}}" title="Past 7 days">Past 7 days</a></li>-->
 
-    <li class="list-group-item">
-    <a href="?date__gte={{month_date|date:'Y-m-d'}}&amp;date__lt={{todays_date}}" title="This month">This month</a></li>
+<!--    <li class="list-group-item">-->
+<!--    <a href="?date__gte={{month_date|date:'Y-m-d'}}&amp;date__lt={{todays_date}}" title="This month">This month</a></li>-->
 
-    <li class="list-group-item">
-    <a href="?date__gte=2021-01-01&amp;date__lt=2022-01-01" title="This year">This year</a></li>
+<!--    <li class="list-group-item">-->
+<!--    <a href="?date__gte=2021-01-01&amp;date__lt=2022-01-01" title="This year">This year</a></li>-->
 
-</ul>
-    </div>
-  </div>
+<!--</ul>-->
+<!--    </div>-->
+<!--  </div>-->
+</div>
 </div>
 
 {% endblock %}
+
+<!--<tbody>-->
+<!--          <tr>-->
+<!--            {% for stu in object_list %}-->
+<!--               <td>-->
+<!--                {{stu}}-->
+<!--            </td>-->
+<!--              <td>-->
+<!--                <div class="custom-control custom-checkbox">-->
+<!--                  {% if stu.status == True %}-->
+<!--                  <input type="checkbox" class="custom-control-input" onclick="return false;" id="customCheck1"-->
+<!--                         checked >-->
+<!--                  <label class="custom-control-label" for="customCheck1">Present</label>-->
+<!--                  {% else %}-->
+<!--                  <input type="checkbox" class="custom-control-input" onclick="return false;" id="customCheck">-->
+<!--                  <label class="custom-control-label" for="customCheck1">Absent</label>-->
+<!--                  {% endif %}-->
+
+
+<!--              </div>-->
+<!--            </td>-->
+<!--            <td>{{stu.date}}</td>-->
+
+
+<!--          </tr>-->
+<!--         {% endfor %}-->
+
+
+<!--        </tbody>-->
+<!--      </-->

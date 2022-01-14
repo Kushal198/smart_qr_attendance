@@ -2,6 +2,7 @@
 {% load filters %}
 {% block title %}My courses{% endblock %}
 {% block content %}
+
 <h1>Attendance List</h1>
 <div class="container mt-4">
   <div class="row">
@@ -22,7 +23,7 @@
                   {{stu.roll_number}}
               </td>
                <td>
-             <a href="{% url 'get_student_detail' stu.roll_number stu.course_id%}">{{stu.name}}</a>
+             <a href="{% url 'get_student_detail' stu.roll_number course_id%}">{{stu.name}}</a>
             </td>
               <td>
                 <div class="custom-control custom-checkbox">
