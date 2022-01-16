@@ -23,7 +23,7 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/login', RedirectView.as_view(url='/accounts/login')),
     path('admin/', admin.site.urls),
-    path('accounts/login/', auth_views.LoginView.as_view(extra_context={
+    path('accounts/login/', auth_views.LoginView.as_view(redirect_authenticated_user=True,extra_context={
             'next': '/course/mine/',
         },
     ), name='login'),

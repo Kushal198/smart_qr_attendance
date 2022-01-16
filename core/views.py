@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import pyotp
 from django.conf import settings
 from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
@@ -27,16 +27,26 @@ from io import BytesIO
 from rest_framework.authtoken.models import Token
 from .serializers import ReadAttendanceSerializer, WriteAttendanceSerializer, CourseEnrollSerializer, \
     AttendanceCourseSerializer
+from django.contrib.auth.mixins import UserPassesTestMixin
+
+class SuperuserRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return not self.request.user.is_superuser
 
 
 class OwnerMixin(object):
     def get_queryset(self):
+        # if self.request.user.is_superuser:
+        #     return redirect('/accounts/login/')
         qs = super(OwnerMixin, self).get_queryset()
+
         return qs.filter(teacher=self.request.user.teacher)
 
 
 class OwnerEditMixin(object):
     def form_valid(self, form):
+        # if self.request.user.is_superuser:
+        #     return redirect('/accounts/login/')
         depart = Department.objects.get(teacher=self.request.user.teacher)
         form.instance.department = depart
         form.instance.teacher = self.request.user.teacher
@@ -50,14 +60,16 @@ class OwnerCourseMixin(OwnerMixin,LoginRequiredMixin):
 
 
 class OwnerCourseEditMixin(OwnerCourseMixin, OwnerEditMixin):
+
     fields = ['class_id','name', 'code',]
     success_url = reverse_lazy('manage_course_list')
     template_name = 'courses/manage/course/form.html'
 
 
-class ManageCourseListView(OwnerCourseMixin, ListView):
+class ManageCourseListView(SuperuserRequiredMixin,OwnerCourseMixin, ListView, PermissionRequiredMixin):
     template_name = 'courses/manage/course/list.html'
     permission_required = 'core.view_course'
+
 
 
 class CourseCreateView(PermissionRequiredMixin, OwnerCourseEditMixin, CreateView):
@@ -83,6 +95,7 @@ def listStudentAttendance(request, pk):
 
 
 @login_required
+@user_passes_test(lambda u: not u.is_superuser)
 def generateQRCode(request, pk):
     context = {}
     if request.method == "GET":
@@ -173,7 +186,9 @@ class ObtainAuthTokenEdit(ObtainAuthToken):
         })
 
 @login_required
-def filterDateApi(request,pk):
+@permission_required('core.view_attendance')
+@user_passes_test(lambda u: not u.is_superuser)
+def filterDateApi(request, pk):
     context = {}
     queryset = Student.objects.raw('''SELECT A.roll_number,B.date,A.name,B.status,B.course_id 
     FROM core_student A 
@@ -203,7 +218,9 @@ def filterDateApi(request,pk):
 #     #     kwargs = super(AddStudents, self).get_form_kwargs(*args, **kwargs)
 #     #     kwargs['user'] = self.request.user
 #     #     return kwargs
-
+@login_required
+@permission_required('core.view_attendance','core.view_attendance')
+@user_passes_test(lambda u: not u.is_superuser)
 def get_student_detail(request, pk,course_id):
     # print(pk,course_id)
     student_info = Student.objects.get(roll_number=pk)
