@@ -178,7 +178,7 @@ def filterDateApi(request,pk):
     queryset = Student.objects.raw('''SELECT A.roll_number,B.date,A.name,B.status,B.course_id 
     FROM core_student A 
     LEFT JOIN (SELECT * FROM core_attendance WHERE date=CURRENT_DATE AND course_id=%s)as B 
-    ON A.roll_number=B.student_id group by A.roll_number'''%pk)
+    ON A.roll_number=B.student_id'''%pk)
     context['object_list'] = queryset
     context['course_id'] = pk
     return render(request, 'courses/manage/attendance/list.html', context=context)
