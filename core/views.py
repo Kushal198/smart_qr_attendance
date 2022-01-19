@@ -186,7 +186,6 @@ class ObtainAuthTokenEdit(ObtainAuthToken):
         })
 
 @login_required
-@permission_required('core.view_attendance')
 @user_passes_test(lambda u: not u.is_superuser)
 def filterDateApi(request, pk):
     context = {}
